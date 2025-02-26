@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gourmet Glass | Restaurant</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #4CA1AF, #2C3E50);
+            min-height: 100vh;
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            transition: all 0.3s ease;
+        }
+
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 9999;
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+            .nav-menu.active {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body class="p-4">
+    <!-- Navigation -->
+    <nav class="glass p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-white">Gourmet Glass</h1>
+            <div class="hidden md:flex space-x-6 text-white">
+                <a href="#menu" class="hover:text-blue-200">Menu</a>
+                <a href="#reservation" class="hover:text-blue-200">Reservations</a>
+                <a href="#orders" class="hover:text-blue-200">Orders</a>
+                <button id="loginBtn" class="hover:text-blue-200">Login</button>
+            </div>
+            <button class="md:hidden text-white" id="mobileMenu">
+                <i class="bi bi-list text-2xl"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="glass p-4 mb-4 hidden" id="mobileNav">
+        <div class="flex flex-col space-y-4 text-white">
+            <a href="#menu" class="hover:text-blue-200">Menu</a>
+            <a href="#reservation" class="hover:text-blue-200">Reservations</a>
+            <a href="#orders" class="hover:text-blue-200">Orders</a>
+            <button id="mobileLoginBtn" class="hover:text-blue-200">Login</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container mx-auto">
+        <!-- Login Modal -->
+        <div id="loginModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div class="glass p-8 max-w-md w-full">
+                <h2 class="text-2xl font-bold text-white mb-4">Login</h2>
+                <form id="loginForm" class="space-y-4">
+                    <div>
+                        <input type="email" placeholder="Email" class="w-full p-2 rounded bg-white bg-opacity-20 text-white" required>
+                    </div>
+                    <div>
+                        <input type="password" placeholder="Password" class="w-full p-2 rounded bg-white bg-opacity-20 text-white" required>
+                    </div>
+                    <div>
+                        <select class="w-full p-2 rounded bg-white bg-opacity-20 text-white" required>
+                            <option value="">Select Role</option>
+                            <option value="customer">Customer</option>
+                            <option value="manager">Manager</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Login</button>
+                    <p class="text-white text-center">Don't have an account? <button type="button" id="switchToSignup" class="text-blue-300">Sign up</button></p>
+                </form>
+            </div>
+        </div>
+
+        <!-- Menu Section -->
+        <section id="menu" class="mb-8">
+            <h2 class="text-3xl font-bold text-white mb-6">Our Menu</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Menu items will be dynamically populated -->
+            </div>
+        </section>
+
+        <!-- Reservation Section -->
+        <section id="reservation" class="glass p-6 mb-8">
+            <h2 class="text-2xl font-bold text-white mb-4">Make a Reservation</h2>
+            <form id="reservationForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="date" class="p-2 rounded bg-white bg-opacity-20 text-white" required>
+                    <input type="time" class="p-2 rounded bg-white bg-opacity-20 text-white" required>
+                    <input type="number" placeholder="Number of Guests" min="1" class="p-2 rounded bg-white bg-opacity-20 text-white" required>
+                    <input type="tel" placeholder="Phone Number" class="p-2 rounded bg-white bg-opacity-20 text-white" required>
+                </div>
+                <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Reserve Table</button>
+            </form>
+        </section>
+    </main>
+
+    <!-- Loading Spinner -->
+    <div class="loading" id="loadingSpinner">
+        <div class="flex items-center justify-center h-full">
+            <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-white"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Menu Data
+        const menuItems = [
+            { id: 1, name: 'Grilled Salmon', price: 24.99, category: 'Main Course', image: 'https://images.unsplash.com/photo-1485921325833-c519f76c4927?auto=format&fit=crop&q=80' },
+            { id: 2, name: 'Caesar Salad', price: 12.99, category: 'Starters', image: 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?auto=format&fit=crop&q=80' },
+            { id: 3, name: 'Chocolate Lava Cake', price: 8.99, category: 'Desserts', image: 'https://images.unsplash.com/photo-1624353365286-3f8d62daad51?auto=format&fit=crop&q=80' },
+            // Add more items as needed
+        ];
+
+        // Initialize menu
+        function initializeMenu() {
+            const menuContainer = document.querySelector('#menu div');
+            menuItems.forEach(item => {
+                menuContainer.innerHTML += `
+                    <div class="glass p-4 menu-item">
+                        <img src="${item.image}" alt="${item.name}" class="w-full h-48 object-cover rounded mb-4">
+                        <h3 class="text-xl font-bold text-white">${item.name}</h3>
+                        <p class="text-gray-200">${item.category}</p>
+                        <p class="text-white font-bold mt-2">$${item.price}</p>
+                        <button onclick="addToCart(${item.id})" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full">
+                            Add to Cart
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        // Mobile menu toggle
+        document.getElementById('mobileMenu').addEventListener('click', () => {
+            document.getElementById('mobileNav').classList.toggle('hidden');
+        });
+
+        // Login modal
+        const loginModal = document.getElementById('loginModal');
+        const loginBtn = document.getElementById('loginBtn');
+        const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+
+        function toggleLoginModal() {
+            loginModal.classList.toggle('hidden');
+        }
+
+        loginBtn.addEventListener('click', toggleLoginModal);
+        mobileLoginBtn.addEventListener('click', toggleLoginModal);
+
+        // Close modal when clicking outside
+        loginModal.addEventListener('click', (e) => {
+            if (e.target === loginModal) {
+                toggleLoginModal();
+            }
+        });
+
+        // Form submissions
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            document.getElementById('loadingSpinner').style.display = 'block';
+            // Simulate API call
+            setTimeout(() => {
+                document.getElementById('loadingSpinner').style.display = 'none';
+                alert('Login successful!');
+                toggleLoginModal();
+            }, 1500);
+        });
+
+        document.getElementById('reservationForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            document.getElementById('loadingSpinner').style.display = 'block';
+            // Simulate API call
+            setTimeout(() => {
+                document.getElementById('loadingSpinner').style.display = 'none';
+                alert('Reservation successful!');
+                e.target.reset();
+            }, 1500);
+        });
+
+        // Initialize the application
+        initializeMenu();
+
+        // Cart functionality
+        window.addToCart = (itemId) => {
+            const item = menuItems.find(i => i.id === itemId);
+            if (item) {
+                alert(`${item.name} added to cart!`);
+                // Implement cart storage and display logic here
+            }
+        };
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
